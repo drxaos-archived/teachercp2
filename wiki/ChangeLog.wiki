@@ -1,5 +1,7 @@
+{{{
 Teacher Control Panel change log
 
 version 0.2
   Fixed controls blinking on mouse over.
   Added MsLogon auth type.
+}}}
