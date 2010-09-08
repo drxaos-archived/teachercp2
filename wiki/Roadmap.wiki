@@ -1,0 +1,7 @@
+{{{
+Roadmap
+
+  Authentication dialog instead of login and password in config.
+  Ultravnc vncviewer instead of java vnc viewer. For controlling and demonstrating.
+
+}}}
