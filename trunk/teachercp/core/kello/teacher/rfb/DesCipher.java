@@ -71,6 +71,8 @@ package kello.teacher.rfb;
 // Visit the ACME Labs Java page for up-to-date versions of this and other
 // fine Java utilities: http://www.acme.com/java/
 
+//import java.io.*;
+
 /// The DES encryption method.
 // <P>
 // This is surprisingly fast, for pure Java.  On a SPARC 20, wrapped
@@ -191,6 +193,38 @@ public class DesCipher {
     squashBytesToInts(cipherText, cipherOff, this.tempInts, 0, 2);
     des(this.tempInts, this.tempInts, this.decryptKeys);
     spreadIntsToBytes(this.tempInts, 0, clearText, clearOff, 2);
+  }
+
+  // Encrypt a text which is a multiple of 8 bytes.
+  public void encryptText(byte[] clearText, byte[] cipherText, byte[] key) {
+    int i, j;
+
+    for (i = 0; i < 8; i++) {
+      clearText[i] ^= key[i];
+    }
+    encrypt(clearText, 0, cipherText, 0);
+    for (i = 8; i < clearText.length; i += 8) {
+      for (j = 0; j < 8; j++) {
+        clearText[i + j] ^= cipherText[i + j - 8];
+      }
+      encrypt(clearText, i, cipherText, i);
+    }
+  }
+
+  // Decrypt a text which is a multiple of 8 bytes.
+  public void decryptText(byte[] cipherText, byte[] clearText, byte[] key) {
+    int i, j;
+    for (i = cipherText.length - 8; i > 0; i -= 8) {
+      decrypt(cipherText, i, clearText, i);
+      for (j = 0; j < 8; j++) {
+        clearText[i + j] ^= cipherText[i + j - 8];
+      }
+    }
+    /* i = 0 */
+    decrypt(cipherText, 0, clearText, 0);
+    for (i = 0; i < 8; i++) {
+      clearText[i] ^= key[i];
+    }
   }
 
   // The DES function.
