@@ -1,0 +1,1 @@
+java -cp kello.jar kello.teacher.student.Student
