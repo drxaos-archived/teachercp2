@@ -36,7 +36,6 @@ import java.util.Vector;
 import kello.teacher.protocol.RfbServerDescription;
 import kello.teacher.rfb.DH;
 import kello.teacher.rfb.DesCipher;
-import kello.teacher.rfb.DesCipher2;
 import kello.teacher.rfb.MulticastRfbOptions;
 import kello.teacher.rfb.RfbProto;
 import kello.teacher.util.ExceptionDialogBox;
@@ -761,22 +760,23 @@ public class VncProxy implements java.lang.Runnable {
           break;
 
         case RfbProto.VncAuth:
-
+          String pw = this.password;
           byte[] challenge = new byte[16];
           this.rfb.is.readFully(challenge);
 
-          String pw = this.password;
           if (pw.length() > 8) {
-            pw = pw.substring(0, 8); // truncate to 8 chars
+            pw = pw.substring(0, 8); // Truncate to 8 chars
           }
 
-          byte[] key = new byte[8];
-
-          System.arraycopy(pw.getBytes(), 0, key, 0, Math.min(key.length, pw.length()));
-
-          for (int i = pw.length(); i < 8; i++) {
-            key[i] = (byte) 0;
+          // vncEncryptBytes in the UNIX libvncauth truncates password
+          // after the first zero byte. We do to.
+          int firstZero = pw.indexOf(0);
+          if (firstZero != -1) {
+            pw = pw.substring(0, firstZero);
           }
+
+          byte[] key = { 0, 0, 0, 0, 0, 0, 0, 0 };
+          System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
 
           DesCipher des = new DesCipher(key);
 
@@ -796,11 +796,9 @@ public class VncProxy implements java.lang.Runnable {
               System.out.println("VNC authentication failed");
               throw new IOException("VNC authentication failed");
             case RfbProto.VncAuthTooMany:
-              throw new IOException("VNC authentication failed - "
-                  + "too many tries");
+              throw new Exception("VNC authentication failed - too many tries");
             default:
-              throw new IOException("Unknown VNC authentication result "
-                  + authResult);
+              throw new Exception("Unknown VNC authentication result " + authResult);
           }
           break;
 
@@ -821,7 +819,7 @@ public class VncProxy implements java.lang.Runnable {
           System.out.println("gen=" + gen + ", mod=" + mod
               + ", pub=" + pub + ", key=" + ekey);
 
-          DesCipher2 des2 = new DesCipher2(DH.longToBytes(ekey));
+          DesCipher des2 = new DesCipher(DH.longToBytes(ekey));
 
           System.arraycopy(this.username.getBytes(), 0, user, 0, this.username.length());
           // and pad it with Null

@@ -46,7 +46,6 @@ import javax.swing.event.MouseInputAdapter;
 
 import kello.teacher.rfb.DH;
 import kello.teacher.rfb.DesCipher;
-import kello.teacher.rfb.DesCipher2;
 import kello.teacher.rfb.RfbOptions;
 import kello.teacher.rfb.RfbProto;
 
@@ -252,6 +251,8 @@ public class JRfbViewer extends JPanel implements java.lang.Runnable {
     this.cm = new DirectColorModel(8, 7, (7 << 3), (3 << 6));
 
     this.rfb.writeSetPixelFormat(8, 8, false, true, 7, 7, 3, 0, 3, 6);
+    // this.rfb.writeSetPixelFormat(32, 24, false, true, 255, 255, 255, 16, 8,
+    // 0, false);
 
     this.colors = new Color[256];
 
@@ -339,16 +340,17 @@ public class JRfbViewer extends JPanel implements java.lang.Runnable {
           if (pw.length() > 8) {
             pw = pw.substring(0, 8); // truncate to 8 chars
           }
-
-          byte[] key = new byte[8];
-          System.arraycopy(pw.getBytes(), 0, key, 0, Math.min(key.length, pw.length()));
-
-          for (int i = pw.length(); i < 8; i++) {
-            key[i] = (byte) 0;
+          // vncEncryptBytes in the UNIX libvncauth truncates password
+          // after the first zero byte. We do to.
+          int firstZero = pw.indexOf(0);
+          if (firstZero != -1) {
+            pw = pw.substring(0, firstZero);
           }
 
-          DesCipher des = new DesCipher(key);
+          byte[] key = { 0, 0, 0, 0, 0, 0, 0, 0 };
+          System.arraycopy(pw.getBytes(), 0, key, 0, pw.length());
 
+          DesCipher des = new DesCipher(key);
           des.encrypt(challenge, 0, challenge, 0);
           des.encrypt(challenge, 8, challenge, 8);
 
@@ -389,7 +391,7 @@ public class JRfbViewer extends JPanel implements java.lang.Runnable {
           System.out.println("gen=" + gen + ", mod=" + mod
               + ", pub=" + pub + ", key=" + ekey);
 
-          DesCipher2 des2 = new DesCipher2(DH.longToBytes(ekey));
+          DesCipher des2 = new DesCipher(DH.longToBytes(ekey));
 
           System.arraycopy(this.username.getBytes(), 0, user, 0, this.username.length());
           // and pad it with Null
@@ -566,7 +568,7 @@ public class JRfbViewer extends JPanel implements java.lang.Runnable {
    * 
    * @throws InterruptedException
    */
-  public void processNormalProtocol() throws IOException, InterruptedException {
+  public void processNormalProtocol() throws Exception {
 
     long lastRequest = 0;
 

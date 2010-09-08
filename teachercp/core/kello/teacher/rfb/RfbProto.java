@@ -63,15 +63,23 @@ public class RfbProto {
   public static final int ConnFailed = 0, NoAuth = 1, VncAuth = 2, MsLogon = -6;
   public static final int VncAuthOK = 0, VncAuthFailed = 1, VncAuthTooMany = 2;
 
-  public static final int FramebufferUpdate = 0, SetColourMapEntries = 1, Bell = 2,
-      ServerCutText = 3;
+  public static final int FramebufferUpdate = 0,
+      SetColourMapEntries = 1,
+      Bell = 2,
+      ServerCutText = 3,
+      rfbFileTransfer = 7;
 
   public static final int SetPixelFormat = 0, FixColourMapEntries = 1,
       SetEncodings = 2, FramebufferUpdateRequest = 3, KeyEventA = 4,
       PointerEvent = 5, ClientCutText = 6;
 
-  public static final int EncodingRaw = 0, EncodingCopyRect = 1, EncodingRRE = 2,
-      EncodingCoRRE = 4, EncodingHextile = 5;
+  public static final int EncodingRaw = 0,
+      EncodingCopyRect = 1,
+      EncodingRRE = 2,
+      EncodingCoRRE = 4,
+      EncodingHextile = 5,
+      EncodingZlib = 6,
+      EncodingTight = 7;
 
   public static final int HextileRaw = (1 << 0);
   public static final int HextileBackgroundSpecified = (1 << 1);
